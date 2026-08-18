@@ -65,12 +65,12 @@ const AUDIO_COLUMN: Record<AudioKey, keyof Hunt> = {
 }
 
 const AUDIO_FILE: Record<AudioKey, string> = {
-  ball: "happy_bark.mp3",
+  ball: "play_bark.mp3",
   treat: "happy_bark.mp3",
   growl: "growl.mp3",
   happy_bark: "happy_bark.mp3",
   trust_guarded: "growl.mp3",
-  trust_alert: "alert.mp3",
+  trust_alert: "happy_bark.mp3",
   trust_calm: "happy_bark.mp3",
 }
 

@@ -4,13 +4,14 @@ import { createSupabaseAdmin } from "@/lib/supabase-admin"
 type AssetKind = "audio" | "image"
 
 const AUDIO_NAMES: Record<string, string[]> = {
-  ball: ["goji_happy.mp3", "goji_bark.mp3", "happy_bark.mp3", "happy-bark.mp3", "bark.mp3"],
-  treat: ["goji_happy.mp3", "goji_treat.mp3", "happy_bark.mp3", "treat.mp3", "bark.mp3"],
-  growl: ["goji_growl.mp3", "growl.mp3", "Growl.mp3"],
-  happy_bark: ["goji_happy.mp3", "goji_happy_bark.mp3", "happy_bark.mp3", "bark.mp3"],
-  trust_guarded: ["goji_growl.mp3", "growl.mp3"],
-  trust_alert: ["goji_alert.mp3", "alert.mp3", "growl.mp3", "goji_growl.mp3"],
-  trust_calm: ["goji_happy.mp3", "goji_happy_bark.mp3", "happy_bark.mp3"],
+  ball: ["play_bark.mp3"],
+  treat: ["happy_bark.mp3"],
+  growl: ["growl.mp3"],
+  happy_bark: ["happy_bark.mp3"],
+  play_bark: ["play_bark.mp3"],
+  trust_guarded: ["growl.mp3"],
+  trust_alert: ["happy_bark.mp3"],
+  trust_calm: ["happy_bark.mp3"],
 }
 
 const IMAGE_NAMES: Record<string, string[]> = {
