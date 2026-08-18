@@ -112,7 +112,7 @@ export function AskGojiApp({
   }, [reelFromUrl])
 
   const playForKey = useCallback(
-    (
+    async (
       key:
         | "ball"
         | "treat"
@@ -122,15 +122,32 @@ export function AskGojiApp({
         | "trust_alert"
         | "trust_calm",
     ) => {
-      if (!reelId || !audioConfig) return
-      const url = resolveHuntAudio(
-        hunt,
-        reelId,
-        key,
-        audioConfig.supabaseUrl,
-        audioConfig.audioBucket,
-      )
-      playAudioUrl(url, muted)
+      if (!reelId) return
+
+      let url =
+        hunt &&
+        audioConfig &&
+        resolveHuntAudio(
+          hunt,
+          reelId,
+          key,
+          audioConfig.supabaseUrl,
+          audioConfig.audioBucket,
+        )
+
+      try {
+        const response = await fetch(
+          `/api/asset?reel=${encodeURIComponent(reelId)}&kind=audio&key=${encodeURIComponent(key)}`,
+        )
+        if (response.ok) {
+          const body = (await response.json()) as { url: string }
+          url = body.url
+        }
+      } catch {
+        // fall back to constructed URL
+      }
+
+      if (url) playAudioUrl(url, muted)
     },
     [audioConfig, hunt, muted, reelId],
   )
@@ -238,6 +255,47 @@ export function AskGojiApp({
     )
   }, [audioConfig, displayMood, hunt, reelId])
 
+  const [resolvedImageSrc, setResolvedImageSrc] = useState<string | undefined>()
+
+  useEffect(() => {
+    if (!reelId) {
+      setResolvedImageSrc(undefined)
+      return
+    }
+
+    let cancelled = false
+    const moodKey =
+      displayMood === "playful" || displayMood === "happy"
+        ? "playful"
+        : displayMood === "calm"
+          ? "calm"
+          : "guarded"
+
+    async function loadImage() {
+      try {
+        const response = await fetch(
+          `/api/asset?reel=${encodeURIComponent(reelId!)}&kind=image&key=${encodeURIComponent(moodKey)}`,
+        )
+        if (cancelled) return
+        if (response.ok) {
+          const body = (await response.json()) as { url: string }
+          setResolvedImageSrc(body.url)
+          return
+        }
+      } catch {
+        // fall back below
+      }
+
+      if (!cancelled) setResolvedImageSrc(gojiImageSrc)
+    }
+
+    void loadImage()
+
+    return () => {
+      cancelled = true
+    }
+  }, [displayMood, gojiImageSrc, reelId])
+
   if (huntLoading) {
     return (
       <main className="texture-paper flex h-dvh items-center justify-center">
@@ -298,7 +356,7 @@ export function AskGojiApp({
           trust={trust}
           muted={muted}
           onToggleMute={() => setMuted((m) => !m)}
-          imageSrc={gojiImageSrc}
+          imageSrc={resolvedImageSrc ?? gojiImageSrc}
         />
 
         <ActionBar onAction={handleAction} disabled={unlocked} />
