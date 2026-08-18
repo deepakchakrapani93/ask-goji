@@ -9,7 +9,7 @@ const AUDIO_NAMES: Record<string, string[]> = {
   growl: ["goji_growl.mp3", "growl.mp3", "Growl.mp3"],
   happy_bark: ["goji_happy.mp3", "goji_happy_bark.mp3", "happy_bark.mp3", "bark.mp3"],
   trust_guarded: ["goji_growl.mp3", "growl.mp3"],
-  trust_alert: ["goji_alert.mp3", "alert.mp3"],
+  trust_alert: ["goji_alert.mp3", "alert.mp3", "growl.mp3", "goji_growl.mp3"],
   trust_calm: ["goji_happy.mp3", "goji_happy_bark.mp3", "happy_bark.mp3"],
 }
 
