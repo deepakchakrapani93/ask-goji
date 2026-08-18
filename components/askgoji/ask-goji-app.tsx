@@ -24,7 +24,8 @@ let entryId = 3
 
 export function AskGojiApp() {
   const searchParams = useSearchParams()
-  const reelId = searchParams.get("reel")
+  const reelId =
+    searchParams.get("reel") ?? process.env.NEXT_PUBLIC_DEFAULT_REEL ?? null
 
   const [hunt, setHunt] = useState<Hunt | null>(null)
   const [huntLoading, setHuntLoading] = useState(Boolean(reelId))
@@ -214,9 +215,21 @@ export function AskGojiApp() {
   if (huntError) {
     return (
       <main className="texture-paper flex h-dvh items-center justify-center px-6">
-        <p className="text-center font-serif text-[color:var(--growl)]">
-          {huntError}
-        </p>
+        <div className="max-w-sm text-center">
+          <p className="font-serif text-[color:var(--growl)]">{huntError}</p>
+          {!reelId && (
+            <p className="mt-3 font-serif text-[14px] text-[color:var(--leather)]">
+              Open the hunt with a reel in the URL, for example{" "}
+              <a
+                href="?reel=cafe_01"
+                className="font-semibold text-[color:var(--pine)] underline"
+              >
+                ?reel=cafe_01
+              </a>
+              .
+            </p>
+          )}
+        </div>
       </main>
     )
   }
