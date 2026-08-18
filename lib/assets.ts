@@ -15,10 +15,10 @@ const AUDIO_NAMES: Record<string, string[]> = {
 }
 
 const IMAGE_NAMES: Record<string, string[]> = {
-  guarded: ["goji_guarded.jpg", "goji-guarded.jpg", "guarded.jpg"],
-  alert: ["goji_alert.jpg", "goji-alert.jpg", "alert.jpg"],
-  playful: ["goji_happy.jpg", "goji_playful.jpg", "goji-playful.jpg", "playful.jpg"],
-  calm: ["goji_happy.jpg", "goji_calm.jpg", "goji-calm.jpg", "calm.jpg"],
+  guarded: ["goji_guarded.JPG", "goji_guarded.jpg", "guarded.jpg"],
+  alert: ["goji_alert.JPG", "goji_alert.jpg", "alert.jpg"],
+  playful: ["goji_happy.JPG", "goji_happy.jpg", "goji_playful.jpg", "playful.jpg"],
+  calm: ["goji_happy.JPG", "goji_happy.jpg", "goji_calm.jpg", "calm.jpg"],
 }
 
 function storagePublicUrl(

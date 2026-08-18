@@ -98,10 +98,10 @@ const IMAGE_COLUMN: Record<ImageMoodKey, keyof Hunt> = {
 }
 
 const IMAGE_FILE: Record<ImageMoodKey, string> = {
-  guarded: "goji_guarded.jpg",
-  alert: "goji_alert.jpg",
-  playful: "goji_happy.jpg",
-  calm: "goji_happy.jpg",
+  guarded: "goji_guarded.JPG",
+  alert: "goji_alert.JPG",
+  playful: "goji_happy.JPG",
+  calm: "goji_happy.JPG",
 }
 
 export function imageKeyForMood(mood: string): ImageMoodKey {
