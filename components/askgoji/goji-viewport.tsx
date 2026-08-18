@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import { Volume2, VolumeX } from "lucide-react"
-import { type Mood, imageForMood, packStatusForMood } from "@/lib/goji"
+import { type Mood, packStatusForMood } from "@/lib/goji"
+
+const PLACEHOLDER = "/placeholder.svg"
 
 export function GojiViewport({
   mood,
@@ -11,19 +13,21 @@ export function GojiViewport({
   muted,
   onToggleMute,
   imageSrc,
+  imageLoading,
 }: {
   mood: Mood
   trust: number
   muted: boolean
   onToggleMute: () => void
   imageSrc?: string
+  imageLoading?: boolean
 }) {
-  const fallback = imageForMood(mood)
-  const [src, setSrc] = useState(imageSrc ?? fallback)
+  const [src, setSrc] = useState(imageSrc ?? PLACEHOLDER)
 
   useEffect(() => {
-    setSrc(imageSrc ?? fallback)
-  }, [imageSrc, fallback])
+    if (imageSrc) setSrc(imageSrc)
+    else if (!imageLoading) setSrc(PLACEHOLDER)
+  }, [imageSrc, imageLoading])
 
   const status = packStatusForMood(mood, trust)
 
@@ -53,14 +57,16 @@ export function GojiViewport({
         <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[2px]">
           <Image
             key={src}
-            src={src || "/placeholder.svg"}
+            src={src}
             alt={`Goji the German Shepherd looking ${mood}`}
             fill
             priority
             sizes="(max-width: 480px) 100vw, 420px"
             className="object-cover"
             style={{ animation: "slide-up 0.4s ease" }}
-            onError={() => setSrc(fallback)}
+            onError={() => {
+              if (imageSrc && src !== imageSrc) setSrc(imageSrc)
+            }}
             unoptimized
           />
 

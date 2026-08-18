@@ -10,7 +10,7 @@ import { WildernessLog, type LogEntry } from "@/components/askgoji/wilderness-lo
 import { UnlockBanner } from "@/components/askgoji/unlock-banner"
 import { playAudioUrl } from "@/lib/audio"
 import type { PublicAudioConfig } from "@/lib/env"
-import { imageKeyForMood, resolveHuntAudio, resolveHuntImage, type Hunt } from "@/lib/hunts"
+import { imageKeyForMood, resolveHuntAudio, type Hunt } from "@/lib/hunts"
 import { withCacheBust } from "@/lib/assets"
 import {
   type Mood,
@@ -272,29 +272,20 @@ export function AskGojiApp({
     return mood
   }, [mood, unlocked])
 
-  const gojiImageSrc = useMemo(() => {
-    if (!reelId || !audioConfig) return undefined
-    return withCacheBust(
-      resolveHuntImage(
-        hunt,
-        displayMood,
-        reelId,
-        audioConfig.supabaseUrl,
-        audioConfig.audioBucket,
-      ),
-    )
-  }, [audioConfig, displayMood, hunt, reelId])
-
   const [resolvedImageSrc, setResolvedImageSrc] = useState<string | undefined>()
+  const [imageLoading, setImageLoading] = useState(true)
 
   useEffect(() => {
     if (!reelId) {
       setResolvedImageSrc(undefined)
+      setImageLoading(false)
       return
     }
 
     let cancelled = false
     const moodKey = imageKeyForMood(displayMood)
+    setImageLoading(true)
+    setResolvedImageSrc(undefined)
 
     async function loadImage() {
       try {
@@ -305,14 +296,14 @@ export function AskGojiApp({
         if (cancelled) return
         if (response.ok) {
           const body = (await response.json()) as { url: string }
-          setResolvedImageSrc(body.url)
+          setResolvedImageSrc(withCacheBust(body.url))
           return
         }
       } catch {
-        // fall back below
+        // leave placeholder visible
+      } finally {
+        if (!cancelled) setImageLoading(false)
       }
-
-      if (!cancelled) setResolvedImageSrc(gojiImageSrc)
     }
 
     void loadImage()
@@ -320,7 +311,7 @@ export function AskGojiApp({
     return () => {
       cancelled = true
     }
-  }, [displayMood, gojiImageSrc, reelId])
+  }, [displayMood, reelId])
 
   if (huntLoading) {
     return (
@@ -387,7 +378,8 @@ export function AskGojiApp({
           trust={trust}
           muted={muted}
           onToggleMute={() => setMuted((m) => !m)}
-          imageSrc={resolvedImageSrc ?? gojiImageSrc}
+          imageSrc={resolvedImageSrc}
+          imageLoading={imageLoading}
         />
 
         <ActionBar onAction={handleAction} disabled={unlocked} />
