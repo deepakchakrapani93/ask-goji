@@ -60,9 +60,7 @@ export function GojiViewport({
             sizes="(max-width: 480px) 100vw, 420px"
             className="object-cover"
             style={{ animation: "slide-up 0.4s ease" }}
-            onError={() => {
-              if (!imageSrc?.includes("supabase.co")) setSrc(fallback)
-            }}
+            onError={() => setSrc(fallback)}
             unoptimized
           />
 

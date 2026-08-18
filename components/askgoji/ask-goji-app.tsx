@@ -129,6 +129,10 @@ export function AskGojiApp({
     }
   }, [audioConfig?.defaultReel, initialConfig?.defaultReel, reelFromUrl])
 
+  useEffect(() => {
+    playedIntroGrowlRef.current = false
+  }, [reelId])
+
   const playForKey = useCallback(
     async (
       key:

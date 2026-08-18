@@ -39,6 +39,7 @@ export async function GET(request: Request) {
     key,
     config.audioBucket,
     config.supabaseUrl,
+    config.defaultReel,
   )
 
   if (!resolved) {
@@ -47,7 +48,7 @@ export async function GET(request: Request) {
         error: `No ${kind} asset found for key "${key}".`,
         tried: candidates.slice(0, 8),
         hint:
-          "Upload files to goji-assets/cafe_01/ and make the bucket public with a storage read policy.",
+          `Upload files to goji-assets/${reelId}/ (e.g. growl.mp3, goji_guarded.JPG) or set NEXT_PUBLIC_DEFAULT_REEL to a reel that already has assets.`,
       },
       { status: 404, headers: { "Cache-Control": "no-store" } },
     )

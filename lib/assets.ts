@@ -92,6 +92,37 @@ export async function resolveAssetUrl(
   key: string,
   bucket?: string,
   supabaseUrl?: string,
+  fallbackReelId?: string | null,
+): Promise<string | null> {
+  const resolved = await resolveAssetUrlForReel(
+    reelId,
+    kind,
+    key,
+    bucket,
+    supabaseUrl,
+  )
+
+  if (resolved) return resolved
+
+  if (fallbackReelId && fallbackReelId !== reelId) {
+    return resolveAssetUrlForReel(
+      fallbackReelId,
+      kind,
+      key,
+      bucket,
+      supabaseUrl,
+    )
+  }
+
+  return null
+}
+
+async function resolveAssetUrlForReel(
+  reelId: string,
+  kind: AssetKind,
+  key: string,
+  bucket?: string,
+  supabaseUrl?: string,
 ): Promise<string | null> {
   const resolvedBucket = bucket ?? getAudioBucket()
   const names =
