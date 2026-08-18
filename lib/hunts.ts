@@ -23,7 +23,7 @@ export async function fetchHunt(reelId: string): Promise<Hunt | null> {
 
   if (error) {
     console.error("Failed to fetch hunt:", error.message)
-    return null
+    throw new Error(error.message)
   }
 
   if (!data?.google_maps_url) return null

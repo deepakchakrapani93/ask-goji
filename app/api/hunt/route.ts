@@ -32,7 +32,11 @@ export async function GET(request: Request) {
 
     if (!hunt) {
       return NextResponse.json(
-        { error: `No hunt found for reel "${reelId}".` },
+        {
+          error: `No hunt found for reel "${reelId}".`,
+          hint:
+            "Check that reel_id is exactly cafe_01 and that Row Level Security allows public SELECT on the Hunts table.",
+        },
         { status: 404 },
       )
     }
