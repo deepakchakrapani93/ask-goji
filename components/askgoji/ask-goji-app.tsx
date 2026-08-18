@@ -30,6 +30,11 @@ type HuntApiResponse = {
   config: PublicAudioConfig
 }
 
+type HuntApiError = {
+  error?: string
+  hint?: string
+}
+
 export function AskGojiApp({
   initialConfig,
 }: {
@@ -47,6 +52,7 @@ export function AskGojiApp({
   const [hunt, setHunt] = useState<Hunt | null>(null)
   const [huntLoading, setHuntLoading] = useState(true)
   const [huntError, setHuntError] = useState<string | null>(null)
+  const [huntHint, setHuntHint] = useState<string | null>(null)
 
   const [trust, setTrust] = useState(0)
   const [mood, setMood] = useState<Mood>("guarded")
@@ -77,29 +83,39 @@ export function AskGojiApp({
     async function loadHunt() {
       setHuntLoading(true)
       setHuntError(null)
+      setHuntHint(null)
+
+      const reel =
+        reelFromUrl ?? initialConfig?.defaultReel ?? audioConfig?.defaultReel
 
       try {
         const params = new URLSearchParams()
-        if (reelFromUrl) params.set("reel", reelFromUrl)
+        if (reel) params.set("reel", reel)
 
-        const response = await fetch(`/api/hunt?${params.toString()}`)
-        const body = (await response.json()) as HuntApiResponse & {
-          error?: string
-        }
+        const response = await fetch(`/api/hunt?${params.toString()}`, {
+          cache: "no-store",
+        })
+        const body = (await response.json()) as HuntApiResponse & HuntApiError
 
         if (cancelled) return
 
         if (!response.ok) {
           setHuntError(body.error ?? "Could not load hunt.")
+          setHuntHint(body.hint ?? null)
           setHunt(null)
           return
         }
 
         setHunt(body.hunt)
         setAudioConfig(body.config)
-      } catch {
+      } catch (err) {
         if (!cancelled) {
-          setHuntError("Could not connect to Supabase. Check your environment variables.")
+          const message =
+            err instanceof Error ? err.message : "Unknown network error"
+          setHuntError(`Could not load hunt (${message}).`)
+          setHuntHint(
+            "Check the browser Network tab for /api/hunt. If it returns HTML instead of JSON, Vercel deployment protection may be blocking the API.",
+          )
         }
       } finally {
         if (!cancelled) setHuntLoading(false)
@@ -111,7 +127,7 @@ export function AskGojiApp({
     return () => {
       cancelled = true
     }
-  }, [reelFromUrl])
+  }, [audioConfig?.defaultReel, initialConfig?.defaultReel, reelFromUrl])
 
   const playForKey = useCallback(
     async (
@@ -315,6 +331,11 @@ export function AskGojiApp({
       <main className="texture-paper flex h-dvh items-center justify-center px-6">
         <div className="max-w-sm text-center">
           <p className="font-serif text-[color:var(--growl)]">{huntError}</p>
+          {huntHint && (
+            <p className="mt-3 font-serif text-[14px] text-[color:var(--leather)]">
+              {huntHint}
+            </p>
+          )}
           {!reelId && (
             <p className="mt-3 font-serif text-[14px] text-[color:var(--leather)]">
               Open the hunt with a reel in the URL, for example{" "}

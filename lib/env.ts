@@ -37,7 +37,8 @@ export type PublicAudioConfig = {
 
 export function getPublicAudioConfig(): PublicAudioConfig | null {
   const supabaseUrl = getSupabaseUrl()
-  if (!supabaseUrl) return null
+  const supabaseKey = getSupabaseKey()
+  if (!supabaseUrl || !supabaseKey) return null
 
   return {
     supabaseUrl,
