@@ -10,7 +10,7 @@ import { WildernessLog, type LogEntry } from "@/components/askgoji/wilderness-lo
 import { UnlockBanner } from "@/components/askgoji/unlock-banner"
 import { playAudioUrl } from "@/lib/audio"
 import type { PublicAudioConfig } from "@/lib/env"
-import { resolveHuntAudio, resolveHuntImage, type Hunt } from "@/lib/hunts"
+import { imageKeyForMood, resolveHuntAudio, resolveHuntImage, type Hunt } from "@/lib/hunts"
 import {
   type Mood,
   ballReply,
@@ -264,12 +264,7 @@ export function AskGojiApp({
     }
 
     let cancelled = false
-    const moodKey =
-      displayMood === "playful" || displayMood === "happy"
-        ? "playful"
-        : displayMood === "calm"
-          ? "calm"
-          : "guarded"
+    const moodKey = imageKeyForMood(displayMood)
 
     async function loadImage() {
       try {

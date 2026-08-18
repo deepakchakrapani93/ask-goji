@@ -88,21 +88,24 @@ export function resolveHuntAudio(
   return publicStorageUrl(reelId, AUDIO_FILE[key], supabaseUrl, audioBucket)
 }
 
-type ImageMoodKey = "guarded" | "playful" | "calm"
+type ImageMoodKey = "guarded" | "alert" | "playful" | "calm"
 
 const IMAGE_COLUMN: Record<ImageMoodKey, keyof Hunt> = {
   guarded: "image_guarded_url",
+  alert: "image_guarded_url",
   playful: "image_playful_url",
   calm: "image_calm_url",
 }
 
 const IMAGE_FILE: Record<ImageMoodKey, string> = {
-  guarded: "goji-guarded.png",
-  playful: "goji-playful.png",
-  calm: "goji-calm.png",
+  guarded: "goji_guarded.jpg",
+  alert: "goji_alert.jpg",
+  playful: "goji_happy.jpg",
+  calm: "goji_happy.jpg",
 }
 
 export function imageKeyForMood(mood: string): ImageMoodKey {
+  if (mood === "alert") return "alert"
   if (mood === "playful" || mood === "happy") return "playful"
   if (mood === "calm") return "calm"
   return "guarded"

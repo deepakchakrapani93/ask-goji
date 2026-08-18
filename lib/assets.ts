@@ -4,37 +4,20 @@ import { createSupabaseAdmin } from "@/lib/supabase-admin"
 type AssetKind = "audio" | "image"
 
 const AUDIO_NAMES: Record<string, string[]> = {
-  ball: ["happy_bark.mp3", "happy-bark.mp3", "bark.mp3"],
-  treat: ["happy_bark.mp3", "happy-bark.mp3", "treat.mp3", "bark.mp3"],
-  growl: ["growl.mp3", "Growl.mp3", "growl.MP3"],
-  happy_bark: ["happy_bark.mp3", "happy-bark.mp3", "bark.mp3"],
-  trust_guarded: ["growl.mp3", "Growl.mp3"],
-  trust_alert: ["alert.mp3", "Alert.mp3", "alert.MP3"],
-  trust_calm: ["happy_bark.mp3", "happy-bark.mp3", "bark.mp3"],
+  ball: ["goji_happy.mp3", "goji_bark.mp3", "happy_bark.mp3", "happy-bark.mp3", "bark.mp3"],
+  treat: ["goji_happy.mp3", "goji_treat.mp3", "happy_bark.mp3", "treat.mp3", "bark.mp3"],
+  growl: ["goji_growl.mp3", "growl.mp3", "Growl.mp3"],
+  happy_bark: ["goji_happy.mp3", "goji_happy_bark.mp3", "happy_bark.mp3", "bark.mp3"],
+  trust_guarded: ["goji_growl.mp3", "growl.mp3"],
+  trust_alert: ["goji_alert.mp3", "alert.mp3"],
+  trust_calm: ["goji_happy.mp3", "goji_happy_bark.mp3", "happy_bark.mp3"],
 }
 
 const IMAGE_NAMES: Record<string, string[]> = {
-  guarded: [
-    "goji-guarded.jpg",
-    "goji-guarded.jpeg",
-    "goji-guarded.png",
-    "guarded.jpg",
-    "guarded.png",
-  ],
-  playful: [
-    "goji-playful.jpg",
-    "goji-playful.jpeg",
-    "goji-playful.png",
-    "playful.jpg",
-    "playful.png",
-  ],
-  calm: [
-    "goji-calm.jpg",
-    "goji-calm.jpeg",
-    "goji-calm.png",
-    "calm.jpg",
-    "calm.png",
-  ],
+  guarded: ["goji_guarded.jpg", "goji-guarded.jpg", "guarded.jpg"],
+  alert: ["goji_alert.jpg", "goji-alert.jpg", "alert.jpg"],
+  playful: ["goji_happy.jpg", "goji_playful.jpg", "goji-playful.jpg", "playful.jpg"],
+  calm: ["goji_happy.jpg", "goji_calm.jpg", "goji-calm.jpg", "calm.jpg"],
 }
 
 function storagePublicUrl(
