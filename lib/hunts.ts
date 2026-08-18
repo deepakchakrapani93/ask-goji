@@ -15,9 +15,9 @@ export async function fetchHunt(reelId: string): Promise<Hunt | null> {
   const supabase = createSupabaseClient()
 
   const { data, error } = await supabase
-    .from("hunts")
+    .from("Hunts")
     .select("*")
-    .or(`id.eq.${reelId},reel.eq.${reelId}`)
+    .eq("reel_id", reelId)
     .maybeSingle()
 
   if (error) {

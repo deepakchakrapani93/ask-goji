@@ -76,10 +76,12 @@ export function AskGojiApp() {
         } else {
           setHunt(data)
         }
-      } catch {
+      } catch (err) {
         if (!cancelled) {
           setHuntError(
-            "Could not connect to Supabase. Check your environment variables.",
+            err instanceof Error
+              ? err.message
+              : "Could not connect to Supabase. Check your environment variables.",
           )
         }
       } finally {
