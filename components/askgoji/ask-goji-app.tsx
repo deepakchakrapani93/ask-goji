@@ -10,7 +10,7 @@ import { WildernessLog, type LogEntry } from "@/components/askgoji/wilderness-lo
 import { UnlockBanner } from "@/components/askgoji/unlock-banner"
 import { playAudioUrl } from "@/lib/audio"
 import type { PublicAudioConfig } from "@/lib/env"
-import { resolveHuntAudio, type Hunt } from "@/lib/hunts"
+import { resolveHuntAudio, resolveHuntImage, type Hunt } from "@/lib/hunts"
 import {
   type Mood,
   ballReply,
@@ -227,6 +227,17 @@ export function AskGojiApp({
     return mood
   }, [mood, unlocked])
 
+  const gojiImageSrc = useMemo(() => {
+    if (!reelId || !audioConfig) return undefined
+    return resolveHuntImage(
+      hunt,
+      displayMood,
+      reelId,
+      audioConfig.supabaseUrl,
+      audioConfig.audioBucket,
+    )
+  }, [audioConfig, displayMood, hunt, reelId])
+
   if (huntLoading) {
     return (
       <main className="texture-paper flex h-dvh items-center justify-center">
@@ -287,6 +298,7 @@ export function AskGojiApp({
           trust={trust}
           muted={muted}
           onToggleMute={() => setMuted((m) => !m)}
+          imageSrc={gojiImageSrc}
         />
 
         <ActionBar onAction={handleAction} disabled={unlocked} />

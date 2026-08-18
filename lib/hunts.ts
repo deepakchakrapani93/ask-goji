@@ -3,6 +3,7 @@ import { createSupabaseClient } from "@/lib/supabase"
 
 export type Hunt = {
   google_maps_url: string
+  location_name?: string | null
   audio_ball_url?: string | null
   audio_treat_url?: string | null
   audio_growl_url?: string | null
@@ -10,6 +11,9 @@ export type Hunt = {
   audio_trust_guarded_url?: string | null
   audio_trust_alert_url?: string | null
   audio_trust_calm_url?: string | null
+  image_guarded_url?: string | null
+  image_playful_url?: string | null
+  image_calm_url?: string | null
 }
 
 export async function fetchHunt(reelId: string): Promise<Hunt | null> {
@@ -82,4 +86,39 @@ export function resolveHuntAudio(
   if (typeof fromDb === "string" && fromDb.length > 0) return fromDb
 
   return publicStorageUrl(reelId, AUDIO_FILE[key], supabaseUrl, audioBucket)
+}
+
+type ImageMoodKey = "guarded" | "playful" | "calm"
+
+const IMAGE_COLUMN: Record<ImageMoodKey, keyof Hunt> = {
+  guarded: "image_guarded_url",
+  playful: "image_playful_url",
+  calm: "image_calm_url",
+}
+
+const IMAGE_FILE: Record<ImageMoodKey, string> = {
+  guarded: "goji-guarded.png",
+  playful: "goji-playful.png",
+  calm: "goji-calm.png",
+}
+
+export function imageKeyForMood(mood: string): ImageMoodKey {
+  if (mood === "playful" || mood === "happy") return "playful"
+  if (mood === "calm") return "calm"
+  return "guarded"
+}
+
+export function resolveHuntImage(
+  hunt: Hunt | null,
+  mood: string,
+  reelId: string,
+  supabaseUrl: string,
+  assetsBucket: string,
+): string {
+  const key = imageKeyForMood(mood)
+  const column = IMAGE_COLUMN[key]
+  const fromDb = hunt?.[column]
+  if (typeof fromDb === "string" && fromDb.length > 0) return fromDb
+
+  return publicStorageUrl(reelId, IMAGE_FILE[key], supabaseUrl, assetsBucket)
 }

@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import { Volume2, VolumeX } from "lucide-react"
 import { type Mood, imageForMood, packStatusForMood } from "@/lib/goji"
@@ -9,13 +10,21 @@ export function GojiViewport({
   trust,
   muted,
   onToggleMute,
+  imageSrc,
 }: {
   mood: Mood
   trust: number
   muted: boolean
   onToggleMute: () => void
+  imageSrc?: string
 }) {
-  const src = imageForMood(mood)
+  const fallback = imageForMood(mood)
+  const [src, setSrc] = useState(imageSrc ?? fallback)
+
+  useEffect(() => {
+    setSrc(imageSrc ?? fallback)
+  }, [imageSrc, fallback])
+
   const status = packStatusForMood(mood, trust)
 
   return (
@@ -51,6 +60,8 @@ export function GojiViewport({
             sizes="(max-width: 480px) 100vw, 420px"
             className="object-cover"
             style={{ animation: "slide-up 0.4s ease" }}
+            onError={() => setSrc(fallback)}
+            unoptimized
           />
 
           {/* Vignette */}
