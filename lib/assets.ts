@@ -21,6 +21,11 @@ const IMAGE_NAMES: Record<string, string[]> = {
   calm: ["goji_happy.JPG", "goji_happy.jpg", "goji_calm.jpg", "calm.jpg"],
 }
 
+export function withCacheBust(url: string): string {
+  const separator = url.includes("?") ? "&" : "?"
+  return `${url}${separator}v=${Date.now()}`
+}
+
 function storagePublicUrl(
   bucket: string,
   objectPath: string,

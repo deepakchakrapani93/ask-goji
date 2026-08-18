@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { buildAssetCandidates, resolveAssetUrl } from "@/lib/assets"
+import { buildAssetCandidates, resolveAssetUrl, withCacheBust } from "@/lib/assets"
 import { getPublicAudioConfig } from "@/lib/env"
 
 export const dynamic = "force-dynamic"
@@ -49,9 +49,14 @@ export async function GET(request: Request) {
         hint:
           "Upload files to goji-assets/cafe_01/ and make the bucket public with a storage read policy.",
       },
-      { status: 404 },
+      { status: 404, headers: { "Cache-Control": "no-store" } },
     )
   }
 
-  return NextResponse.json({ url: resolved, reelId, kind, key })
+  const url = kind === "image" ? withCacheBust(resolved) : resolved
+
+  return NextResponse.json(
+    { url, reelId, kind, key },
+    { headers: { "Cache-Control": "no-store" } },
+  )
 }

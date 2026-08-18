@@ -11,6 +11,7 @@ import { UnlockBanner } from "@/components/askgoji/unlock-banner"
 import { playAudioUrl } from "@/lib/audio"
 import type { PublicAudioConfig } from "@/lib/env"
 import { imageKeyForMood, resolveHuntAudio, resolveHuntImage, type Hunt } from "@/lib/hunts"
+import { withCacheBust } from "@/lib/assets"
 import {
   type Mood,
   ballReply,
@@ -253,12 +254,14 @@ export function AskGojiApp({
 
   const gojiImageSrc = useMemo(() => {
     if (!reelId || !audioConfig) return undefined
-    return resolveHuntImage(
-      hunt,
-      displayMood,
-      reelId,
-      audioConfig.supabaseUrl,
-      audioConfig.audioBucket,
+    return withCacheBust(
+      resolveHuntImage(
+        hunt,
+        displayMood,
+        reelId,
+        audioConfig.supabaseUrl,
+        audioConfig.audioBucket,
+      ),
     )
   }, [audioConfig, displayMood, hunt, reelId])
 
@@ -277,6 +280,7 @@ export function AskGojiApp({
       try {
         const response = await fetch(
           `/api/asset?reel=${encodeURIComponent(reelId!)}&kind=image&key=${encodeURIComponent(moodKey)}`,
+          { cache: "no-store" },
         )
         if (cancelled) return
         if (response.ok) {
