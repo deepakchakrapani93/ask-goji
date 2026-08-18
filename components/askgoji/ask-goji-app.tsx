@@ -9,7 +9,8 @@ import { ActionBar, type ActionKey } from "@/components/askgoji/action-bar"
 import { WildernessLog, type LogEntry } from "@/components/askgoji/wilderness-log"
 import { UnlockBanner } from "@/components/askgoji/unlock-banner"
 import { playAudioUrl } from "@/lib/audio"
-import { fetchHunt, resolveHuntAudio, type Hunt } from "@/lib/hunts"
+import type { PublicAudioConfig } from "@/lib/env"
+import { resolveHuntAudio, type Hunt } from "@/lib/hunts"
 import {
   type Mood,
   ballReply,
@@ -22,13 +23,28 @@ import {
 
 let entryId = 3
 
-export function AskGojiApp() {
+type HuntApiResponse = {
+  hunt: Hunt
+  reelId: string
+  config: PublicAudioConfig
+}
+
+export function AskGojiApp({
+  initialConfig,
+}: {
+  initialConfig?: PublicAudioConfig | null
+}) {
   const searchParams = useSearchParams()
+  const reelFromUrl = searchParams.get("reel")
+
+  const [audioConfig, setAudioConfig] = useState<PublicAudioConfig | null>(
+    initialConfig ?? null,
+  )
   const reelId =
-    searchParams.get("reel") ?? process.env.NEXT_PUBLIC_DEFAULT_REEL ?? null
+    reelFromUrl ?? audioConfig?.defaultReel ?? initialConfig?.defaultReel ?? null
 
   const [hunt, setHunt] = useState<Hunt | null>(null)
-  const [huntLoading, setHuntLoading] = useState(Boolean(reelId))
+  const [huntLoading, setHuntLoading] = useState(true)
   const [huntError, setHuntError] = useState<string | null>(null)
 
   const [trust, setTrust] = useState(0)
@@ -54,12 +70,6 @@ export function AskGojiApp() {
   const googleMapsUrl = hunt?.google_maps_url ?? null
 
   useEffect(() => {
-    if (!reelId) {
-      setHuntLoading(false)
-      setHuntError("Missing ?reel= parameter in the URL.")
-      return
-    }
-
     let cancelled = false
 
     async function loadHunt() {
@@ -67,22 +77,27 @@ export function AskGojiApp() {
       setHuntError(null)
 
       try {
-        const data = await fetchHunt(reelId!)
+        const params = new URLSearchParams()
+        if (reelFromUrl) params.set("reel", reelFromUrl)
+
+        const response = await fetch(`/api/hunt?${params.toString()}`)
+        const body = (await response.json()) as HuntApiResponse & {
+          error?: string
+        }
+
         if (cancelled) return
 
-        if (!data) {
-          setHuntError(`No hunt found for reel "${reelId}".`)
+        if (!response.ok) {
+          setHuntError(body.error ?? "Could not load hunt.")
           setHunt(null)
-        } else {
-          setHunt(data)
+          return
         }
-      } catch (err) {
+
+        setHunt(body.hunt)
+        setAudioConfig(body.config)
+      } catch {
         if (!cancelled) {
-          setHuntError(
-            err instanceof Error
-              ? err.message
-              : "Could not connect to Supabase. Check your environment variables.",
-          )
+          setHuntError("Could not connect to Supabase. Check your environment variables.")
         }
       } finally {
         if (!cancelled) setHuntLoading(false)
@@ -94,7 +109,7 @@ export function AskGojiApp() {
     return () => {
       cancelled = true
     }
-  }, [reelId])
+  }, [reelFromUrl])
 
   const playForKey = useCallback(
     (
@@ -107,11 +122,17 @@ export function AskGojiApp() {
         | "trust_alert"
         | "trust_calm",
     ) => {
-      if (!reelId) return
-      const url = resolveHuntAudio(hunt, reelId, key)
+      if (!reelId || !audioConfig) return
+      const url = resolveHuntAudio(
+        hunt,
+        reelId,
+        key,
+        audioConfig.supabaseUrl,
+        audioConfig.audioBucket,
+      )
       playAudioUrl(url, muted)
     },
-    [hunt, muted, reelId],
+    [audioConfig, hunt, muted, reelId],
   )
 
   useEffect(() => {

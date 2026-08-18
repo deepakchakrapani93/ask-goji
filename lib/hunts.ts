@@ -1,3 +1,4 @@
+import { getAudioBucket, getSupabaseUrl } from "@/lib/env"
 import { createSupabaseClient } from "@/lib/supabase"
 
 export type Hunt = {
@@ -30,12 +31,14 @@ export async function fetchHunt(reelId: string): Promise<Hunt | null> {
   return data as Hunt
 }
 
-export function storageAudioUrl(reelId: string, filename: string): string {
-  const supabase = createSupabaseClient()
-  const bucket = process.env.NEXT_PUBLIC_SUPABASE_AUDIO_BUCKET ?? "audio"
-
-  return supabase.storage.from(bucket).getPublicUrl(`${reelId}/${filename}`)
-    .data.publicUrl
+export function publicStorageUrl(
+  reelId: string,
+  filename: string,
+  supabaseUrl = getSupabaseUrl(),
+  bucket = getAudioBucket(),
+): string {
+  const base = supabaseUrl.replace(/\/$/, "")
+  return `${base}/storage/v1/object/public/${bucket}/${reelId}/${filename}`
 }
 
 type AudioKey =
@@ -71,10 +74,12 @@ export function resolveHuntAudio(
   hunt: Hunt | null,
   reelId: string,
   key: AudioKey,
+  supabaseUrl: string,
+  audioBucket: string,
 ): string {
   const column = AUDIO_COLUMN[key]
   const fromDb = hunt?.[column]
   if (typeof fromDb === "string" && fromDb.length > 0) return fromDb
 
-  return storageAudioUrl(reelId, AUDIO_FILE[key])
+  return publicStorageUrl(reelId, AUDIO_FILE[key], supabaseUrl, audioBucket)
 }
