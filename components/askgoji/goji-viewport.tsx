@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Image from "next/image"
 import { Volume2, VolumeX } from "lucide-react"
 import { type Mood, packStatusForMood } from "@/lib/goji"
 
@@ -22,7 +21,7 @@ export function GojiViewport({
   imageSrc?: string
   imageLoading?: boolean
 }) {
-  const [src, setSrc] = useState(imageSrc ?? PLACEHOLDER)
+  const [src, setSrc] = useState(PLACEHOLDER)
 
   useEffect(() => {
     if (imageSrc) setSrc(imageSrc)
@@ -55,19 +54,14 @@ export function GojiViewport({
         }}
       >
         <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[2px]">
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             key={src}
             src={src}
             alt={`Goji the German Shepherd looking ${mood}`}
-            fill
-            priority
-            sizes="(max-width: 480px) 100vw, 420px"
-            className="object-cover"
+            className="absolute inset-0 h-full w-full object-cover"
             style={{ animation: "slide-up 0.4s ease" }}
-            onError={() => {
-              if (imageSrc && src !== imageSrc) setSrc(imageSrc)
-            }}
-            unoptimized
+            decoding="async"
           />
 
           {/* Vignette */}

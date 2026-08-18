@@ -14,9 +14,9 @@ export type TrustTier = {
 }
 
 export const GOJI_IMAGE: Record<"guarded" | "playful" | "calm", string> = {
-  guarded: "/goji-guarded.png",
-  playful: "/goji-playful.png",
-  calm: "/goji-calm.png",
+  guarded: "/placeholder.svg",
+  playful: "/placeholder.svg",
+  calm: "/placeholder.svg",
 }
 
 export function tierForTrust(trust: number): TrustTier {

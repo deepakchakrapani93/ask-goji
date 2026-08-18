@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { buildAssetCandidates, resolveAssetUrl, withCacheBust } from "@/lib/assets"
+import { buildAssetCandidates, resolveAssetUrl } from "@/lib/assets"
 import { FALLBACK_ASSET_REEL, getPublicAudioConfig } from "@/lib/env"
 
 export const dynamic = "force-dynamic"
@@ -54,7 +54,7 @@ export async function GET(request: Request) {
     )
   }
 
-  const url = kind === "image" ? withCacheBust(resolved) : resolved
+  const url = resolved
 
   return NextResponse.json(
     { url, reelId, kind, key },

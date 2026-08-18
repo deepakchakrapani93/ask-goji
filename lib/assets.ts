@@ -1,5 +1,4 @@
 import { getAudioBucket, getSupabaseUrl } from "@/lib/env"
-import { createSupabaseAdmin } from "@/lib/supabase-admin"
 
 type AssetKind = "audio" | "image"
 
@@ -22,8 +21,50 @@ const IMAGE_NAMES: Record<string, string[]> = {
 }
 
 export function withCacheBust(url: string): string {
-  const separator = url.includes("?") ? "&" : "?"
-  return `${url}${separator}v=${Date.now()}`
+  const base = url.split("?")[0] ?? url
+  return `${base}?v=${Date.now()}`
+}
+
+function assetFilename(kind: AssetKind, key: string): string {
+  const names =
+    kind === "audio"
+      ? (AUDIO_NAMES[key] ?? [`${key}.mp3`])
+      : (IMAGE_NAMES[key] ?? [`${key}.jpg`, `${key}.png`])
+  return names[0]
+}
+
+export function canonicalAssetUrl(
+  reelId: string,
+  kind: AssetKind,
+  key: string,
+  bucket = getAudioBucket(),
+  supabaseUrl = getSupabaseUrl(),
+): string {
+  return storagePublicUrl(
+    bucket,
+    `${reelId}/${assetFilename(kind, key)}`,
+    supabaseUrl,
+  )
+}
+
+async function urlExists(url: string): Promise<boolean> {
+  try {
+    const head = await fetch(url, { method: "HEAD", cache: "no-store" })
+    if (head.ok) return true
+  } catch {
+    // try GET below
+  }
+
+  try {
+    const get = await fetch(url, {
+      method: "GET",
+      headers: { Range: "bytes=0-0" },
+      cache: "no-store",
+    })
+    return get.ok || get.status === 206
+  } catch {
+    return false
+  }
 }
 
 function storagePublicUrl(
@@ -71,21 +112,6 @@ export function buildAssetCandidates(
   return [...urls]
 }
 
-export async function resolveFirstAvailableUrl(
-  candidates: string[],
-): Promise<string | null> {
-  for (const url of candidates) {
-    try {
-      const response = await fetch(url, { method: "HEAD", cache: "no-store" })
-      if (response.ok) return url
-    } catch {
-      // try next candidate
-    }
-  }
-
-  return null
-}
-
 export async function resolveAssetUrl(
   reelId: string,
   kind: AssetKind,
@@ -94,122 +120,28 @@ export async function resolveAssetUrl(
   supabaseUrl?: string,
   fallbackReelId?: string | null,
 ): Promise<string | null> {
-  const resolved = await resolveAssetUrlForReel(
-    reelId,
-    kind,
-    key,
-    bucket,
-    supabaseUrl,
-  )
-
-  if (resolved) return resolved
-
-  if (fallbackReelId && fallbackReelId !== reelId) {
-    return resolveAssetUrlForReel(
-      fallbackReelId,
-      kind,
-      key,
-      bucket,
-      supabaseUrl,
-    )
-  }
-
-  return null
-}
-
-async function resolveAssetUrlForReel(
-  reelId: string,
-  kind: AssetKind,
-  key: string,
-  bucket?: string,
-  supabaseUrl?: string,
-): Promise<string | null> {
   const resolvedBucket = bucket ?? getAudioBucket()
-  const names =
-    kind === "audio"
-      ? (AUDIO_NAMES[key] ?? [`${key}.mp3`])
-      : (IMAGE_NAMES[key] ?? [`${key}.jpg`, `${key}.png`])
-
-  const admin = createSupabaseAdmin()
-  if (admin) {
-    const adminUrl = await resolveWithAdmin(admin, resolvedBucket, reelId, names)
-    if (adminUrl) return adminUrl
-  }
-
-  const candidates = buildAssetCandidates(
+  const baseUrl = supabaseUrl ?? getSupabaseUrl()
+  const primaryUrl = canonicalAssetUrl(
     reelId,
     kind,
     key,
     resolvedBucket,
-    supabaseUrl,
+    baseUrl,
   )
-  return resolveFirstAvailableUrl(candidates)
-}
 
-async function listAllFiles(
-  admin: ReturnType<typeof createSupabaseAdmin>,
-  bucket: string,
-  prefix: string,
-): Promise<string[]> {
-  if (!admin) return []
+  if (await urlExists(primaryUrl)) return primaryUrl
 
-  const paths: string[] = []
-  const queue = [prefix]
-
-  while (queue.length > 0) {
-    const folder = queue.shift() ?? ""
-    const { data, error } = await admin.storage.from(bucket).list(folder, {
-      limit: 100,
-    })
-
-    if (error || !data) continue
-
-    for (const item of data) {
-      const path = folder ? `${folder}/${item.name}` : item.name
-      if (item.id) {
-        queue.push(path)
-      } else {
-        paths.push(path)
-      }
-    }
+  if (fallbackReelId && fallbackReelId !== reelId) {
+    return canonicalAssetUrl(
+      fallbackReelId,
+      kind,
+      key,
+      resolvedBucket,
+      baseUrl,
+    )
   }
 
-  return paths
-}
-
-function matchesName(filePath: string, names: string[]): boolean {
-  const base = filePath.split("/").pop()?.toLowerCase() ?? ""
-  return names.some((name) => base === name.toLowerCase())
-}
-
-async function resolveWithAdmin(
-  admin: NonNullable<ReturnType<typeof createSupabaseAdmin>>,
-  bucket: string,
-  reelId: string,
-  names: string[],
-): Promise<string | null> {
-  const prefixes = [reelId, "", "images", "audio", `${reelId}/images`, `${reelId}/audio`]
-  const seen = new Set<string>()
-
-  for (const prefix of prefixes) {
-    const files = await listAllFiles(admin, bucket, prefix)
-    for (const filePath of files) {
-      if (seen.has(filePath) || !matchesName(filePath, names)) continue
-      seen.add(filePath)
-
-      const { data: publicData } = admin.storage.from(bucket).getPublicUrl(filePath)
-      if (publicData.publicUrl) {
-        const publicOk = await resolveFirstAvailableUrl([publicData.publicUrl])
-        if (publicOk) return publicOk
-      }
-
-      const { data: signed, error } = await admin.storage
-        .from(bucket)
-        .createSignedUrl(filePath, 60 * 60)
-
-      if (!error && signed?.signedUrl) return signed.signedUrl
-    }
-  }
-
-  return null
+  // Public bucket: still return the canonical URL if HEAD failed on the server.
+  return primaryUrl
 }
