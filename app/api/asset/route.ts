@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { buildAssetCandidates, resolveAssetUrl, withCacheBust } from "@/lib/assets"
-import { getPublicAudioConfig } from "@/lib/env"
+import { FALLBACK_ASSET_REEL, getPublicAudioConfig } from "@/lib/env"
 
 export const dynamic = "force-dynamic"
 
@@ -39,7 +39,7 @@ export async function GET(request: Request) {
     key,
     config.audioBucket,
     config.supabaseUrl,
-    config.defaultReel,
+    FALLBACK_ASSET_REEL,
   )
 
   if (!resolved) {
@@ -48,7 +48,7 @@ export async function GET(request: Request) {
         error: `No ${kind} asset found for key "${key}".`,
         tried: candidates.slice(0, 8),
         hint:
-          `Upload files to goji-assets/${reelId}/ (e.g. growl.mp3, goji_guarded.JPG) or set NEXT_PUBLIC_DEFAULT_REEL to a reel that already has assets.`,
+          `Upload files to goji-assets/${reelId}/ (e.g. growl.mp3, goji_guarded.JPG) or use assets from goji-assets/${FALLBACK_ASSET_REEL}/.`,
       },
       { status: 404, headers: { "Cache-Control": "no-store" } },
     )

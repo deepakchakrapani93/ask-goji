@@ -29,6 +29,9 @@ export function getDefaultReel(): string | null {
   return reel && reel.length > 0 ? reel : null
 }
 
+/** Reel folder used when a hunt has no images/audio of its own. */
+export const FALLBACK_ASSET_REEL = "cafe_01"
+
 export type PublicAudioConfig = {
   supabaseUrl: string
   audioBucket: string
