@@ -65,6 +65,7 @@ export function AskGojiApp({
 
   const prevTierRef = useRef(tierForTrust(0).key)
   const skipTierAudioRef = useRef(false)
+  const playedIntroGrowlRef = useRef(false)
 
   const unlocked = trust >= 100
   const googleMapsUrl = hunt?.google_maps_url ?? null
@@ -151,6 +152,12 @@ export function AskGojiApp({
     },
     [audioConfig, hunt, muted, reelId],
   )
+
+  useEffect(() => {
+    if (huntLoading || !hunt || !reelId || playedIntroGrowlRef.current) return
+    playedIntroGrowlRef.current = true
+    void playForKey("growl")
+  }, [huntLoading, hunt, reelId, playForKey])
 
   useEffect(() => {
     const tier = tierForTrust(trust).key
